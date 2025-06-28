@@ -1,22 +1,23 @@
-# Use Eclipse Temurin JDK 21 (official base image for Java 21)
+# Use Eclipse Temurin JDK 21 as base for building
 FROM eclipse-temurin:21-jdk as builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy everything to the container
+# Copy project files into the image
 COPY . .
 
-# Package the Spring Boot app using Maven (skip tests for faster build)
+# Make the Maven wrapper script executable
+RUN chmod +x ./mvnw
+
+# Build the application
 RUN ./mvnw clean package -DskipTests
 
-# Create a new minimal image from JDK runtime
+# Create a smaller runtime image
 FROM eclipse-temurin:21-jre
 
-# Set working directory in runtime container
 WORKDIR /app
 
-# Copy the jar from the builder image
+# Copy the built jar file from the builder image
 COPY --from=builder /app/target/*.jar app.jar
 
 # Expose port
